@@ -208,39 +208,61 @@ export default function AdminDashboard() {
           </div>
           <button style={{ padding:"8px 14px", background:"#4f46e5", color:"#fff", border:"none", borderRadius:9, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>+ Add New</button>
         </div>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead>
-              <tr style={{ borderBottom:"2px solid var(--border-input)" }}>
-                {["#","Name","Class","Roll","Status","Action"].map(h => (
-                  <th key={h} style={{ textAlign:"left", padding:"9px 12px", background:"var(--bg-input)", color:"#4f46e5", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((s,i) => (
-                <tr key={i} style={{ borderBottom:"1px solid var(--border)", background: i%2===0?"var(--bg-card)":"var(--bg-input)" }}
-                  onMouseEnter={e=>e.currentTarget.style.background="var(--bg-hover)"}
-                  onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"var(--bg-card)":"var(--bg-input)"}>
-                  <td style={{ padding:"11px 12px", color:"var(--text-muted)", fontSize:12 }}>{i+1}</td>
-                  <td style={{ padding:"11px 12px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <div style={{ width:28, height:28, borderRadius:8, background:"#eef2ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#4f46e5", flexShrink:0 }}>{s.name[0]}</div>
-                      <span style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>{s.name}</span>
-                    </div>
-                  </td>
-                  <td style={{ padding:"11px 12px", fontSize:12, color:"var(--text-secondary)" }}>{s.cls}</td>
-                  <td style={{ padding:"11px 12px", fontSize:12, color:"var(--text-secondary)" }}>{s.roll}</td>
-                  <td style={{ padding:"11px 12px" }}>
-                    <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, background:s.status==="Present"?"var(--bg-badge-green)":"var(--bg-badge-red)", color:s.status==="Present"?"var(--text-green)":"var(--text-red)" }}>{s.status}</span>
-                  </td>
-                  <td style={{ padding:"11px 12px" }}>
-                    <button style={{ fontSize:11, fontWeight:600, color:"#4f46e5", border:"none", background:"none", cursor:"pointer" }}>View →</button>
-                  </td>
+        {/* Desktop Table */}
+        <div className="dash-table-wrap">
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, minWidth:480 }}>
+              <thead>
+                <tr style={{ borderBottom:"2px solid var(--border-input)" }}>
+                  {["#","Name","Class","Roll","Status","Action"].map(h => (
+                    <th key={h} style={{ textAlign:"left", padding:"9px 12px", background:"var(--bg-input)", color:"#4f46e5", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {students.map((s,i) => (
+                  <tr key={i} style={{ borderBottom:"1px solid var(--border)", background: i%2===0?"var(--bg-card)":"var(--bg-input)" }}
+                    onMouseEnter={e=>e.currentTarget.style.background="var(--bg-hover)"}
+                    onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"var(--bg-card)":"var(--bg-input)"}>
+                    <td style={{ padding:"11px 12px", color:"var(--text-muted)", fontSize:12 }}>{i+1}</td>
+                    <td style={{ padding:"11px 12px" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <div style={{ width:28, height:28, borderRadius:8, background:"#eef2ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#4f46e5", flexShrink:0 }}>{s.name[0]}</div>
+                        <span style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>{s.name}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding:"11px 12px", fontSize:12, color:"var(--text-secondary)" }}>{s.cls}</td>
+                    <td style={{ padding:"11px 12px", fontSize:12, color:"var(--text-secondary)" }}>{s.roll}</td>
+                    <td style={{ padding:"11px 12px" }}>
+                      <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, background:s.status==="Present"?"var(--bg-badge-green)":"var(--bg-badge-red)", color:s.status==="Present"?"var(--text-green)":"var(--text-red)" }}>{s.status}</span>
+                    </td>
+                    <td style={{ padding:"11px 12px" }}>
+                      <button style={{ fontSize:11, fontWeight:600, color:"#4f46e5", border:"none", background:"none", cursor:"pointer" }}>View →</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ✅ Mobile Cards */}
+        <div className="dash-cards-wrap" style={{ display:"none", flexDirection:"column", gap:10 }}>
+          {students.map((s,i) => (
+            <div key={i} style={{ background:"var(--bg-input)", borderRadius:12, padding:"12px 14px", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <div style={{ width:36, height:36, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:700, color:"#fff", flexShrink:0 }}>{s.name[0]}</div>
+                <div>
+                  <p style={{ fontSize:13, fontWeight:700, color:"var(--text-primary)", margin:0 }}>{s.name}</p>
+                  <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>Class {s.cls} &nbsp;•&nbsp; Roll {s.roll}</p>
+                </div>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
+                <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, background:s.status==="Present"?"var(--bg-badge-green)":"var(--bg-badge-red)", color:s.status==="Present"?"var(--text-green)":"var(--text-red)", whiteSpace:"nowrap" }}>{s.status}</span>
+                <button style={{ fontSize:11, fontWeight:600, color:"#4f46e5", border:"1px solid #c7d2fe", background:"#eef2ff", padding:"3px 10px", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>View →</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -321,6 +343,14 @@ export default function AdminDashboard() {
           .dash-actions {
             grid-template-columns: repeat(2, 1fr) !important;
           }
+        }
+
+        /* Table → Cards on mobile */
+        .dash-table-wrap { display: block; }
+        .dash-cards-wrap { display: none !important; }
+        @media (max-width: 768px) {
+          .dash-table-wrap { display: none !important; }
+          .dash-cards-wrap { display: flex !important; }
         }
       `}</style>
     </div>
