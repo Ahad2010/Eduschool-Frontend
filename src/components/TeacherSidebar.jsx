@@ -1,0 +1,85 @@
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+const navItems = [
+  { to:"/teacher/dashboard", label:"Dashboard",
+    svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> },
+  { to:"/teacher/attendance", label:"Attendance",
+    svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+  { to:"/teacher/students", label:"Students",
+    svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg> },
+  { to:"/teacher/profile", label:"Profile",
+    svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+  { to:"/teacher/results", label:"Results",
+    svg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> },
+];
+
+export default function TeacherSidebar({ isOpen, onClose }) {
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => { logout(); navigate("/login"); onClose(); };
+
+  return (
+    <>
+      {isOpen && <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.55)", zIndex:40, backdropFilter:"blur(2px)" }}/>}
+
+      <aside className={`sidebar-transition ${isOpen ? "open-sidebar" : ""}`}
+        style={{ position:"fixed", left:0, top:0, height:"100%", width:"var(--sidebar-w)", background:"var(--sidebar-bg)", borderRight:"1px solid rgba(255,255,255,0.06)", display:"flex", flexDirection:"column", zIndex:50 }}>
+
+        {/* Logo */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"18px 16px 14px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#4f46e5,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>🎓</div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ color:"#fff", fontWeight:700, fontSize:14, margin:0 }}>EduSchool</p>
+            <p style={{ color:"#475569", fontSize:11, margin:0 }}>Teacher Panel</p>
+          </div>
+          <button className="sidebar-close-btn" onClick={onClose}
+            style={{ background:"rgba(255,255,255,0.06)", border:"none", borderRadius:7, width:28, height:28, cursor:"pointer", color:"#64748b", fontSize:16, display:"none", alignItems:"center", justifyContent:"center" }}>✕</button>
+        </div>
+
+        {/* Teacher Info */}
+        <div style={{ margin:"10px 10px 4px", padding:"11px 12px", borderRadius:12, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#4f46e5,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontSize:13, fontWeight:700, flexShrink:0 }}>
+              {user?.name?.[0] || "T"}
+            </div>
+            <div style={{ minWidth:0 }}>
+              <p style={{ color:"#fff", fontSize:12, fontWeight:700, margin:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.name || "John Doe"}</p>
+              <p style={{ color:"#475569", fontSize:10, margin:0 }}>Science Teacher</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav style={{ flex:1, overflowY:"auto", padding:"6px 10px" }}>
+          {navItems.map(link => (
+            <NavLink key={link.to} to={link.to} onClick={onClose}
+              style={({ isActive }) => ({
+                display:"flex", alignItems:"center", gap:10,
+                padding:"10px 12px", borderRadius:9, marginBottom:2,
+                textDecoration:"none", fontSize:13.5, fontWeight:500, transition:"all .15s",
+                background: isActive ? "linear-gradient(135deg,#4f46e5,#6366f1)" : "transparent",
+                color:      isActive ? "#fff" : "#64748b",
+              })}>
+              {link.svg}{link.label}
+            </NavLink>
+          ))}
+          <button onClick={handleLogout}
+            style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 12px", borderRadius:9, background:"transparent", border:"none", cursor:"pointer", fontSize:13.5, fontWeight:500, color:"#ef4444", fontFamily:"inherit", transition:"all .15s", marginTop:6 }}
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(239,68,68,0.1)"}
+            onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:17,height:17}}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </button>
+        </nav>
+
+        {/* Bottom */}
+        <div style={{ margin:"0 10px 14px", padding:"14px", borderRadius:14, background:"rgba(79,70,229,0.15)", border:"1px solid rgba(99,102,241,0.25)", textAlign:"center" }}>
+          <p style={{ fontSize:18, margin:"0 0 4px" }}>👨‍🏫</p>
+          <p style={{ color:"#fff", fontSize:12, fontWeight:700, margin:0 }}>Teacher Portal</p>
+          <p style={{ color:"#475569", fontSize:11, margin:"4px 0 0" }}>Session 2024-2025</p>
+        </div>
+      </aside>
+    </>
+  );
+}
