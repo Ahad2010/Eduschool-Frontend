@@ -1,85 +1,85 @@
-import { useState } from "react";
-
-const initialData = [
-  { id:"01", roll:"10-A-01", name:"Ahmed Khan",  class:"10-A", status:"Present", time:"08:00 AM" },
-  { id:"02", roll:"10-A-02", name:"Ali Raza",    class:"10-A", status:"Present", time:"08:01 AM" },
-  { id:"03", roll:"9-B-03",  name:"Hamza Ali",   class:"9-B",  status:"Absent",  time:"08:02 AM" },
-  { id:"04", roll:"9-A-04",  name:"Saad Ahmed",  class:"9-A",  status:"Present", time:"08:03 AM" },
-  { id:"05", roll:"8-A-05",  name:"Usman Tariq", class:"8-A",  status:"Present", time:"08:05 AM" },
-  { id:"06", roll:"8-B-06",  name:"Bilal Khan",  class:"8-B",  status:"Present", time:"08:06 AM" },
-  { id:"07", roll:"7-C-07",  name:"Zain Abbas",  class:"7-C",  status:"Present", time:"08:07 AM" },
-];
+import { useState, useEffect } from "react";
+import { getStudentsAPI, markAttendanceAPI, getAttendanceAPI } from "../../services/api";
 
 const inp = { width:"100%", padding:"10px 13px", background:"var(--bg-input)", border:"1.5px solid var(--border-input)", borderRadius:9, color:"var(--text-primary)", fontSize:13, outline:"none", boxSizing:"border-box", fontFamily:"inherit" };
 
 export default function TeacherAttendance() {
-  const [data,      setData]      = useState(initialData);
-  const [selClass,  setSelClass]  = useState("10-A");
+  const [students,  setStudents]  = useState([]);
+  const [attendance,setAttendance]= useState({}); // { studentId: "Present"/"Absent" }
+  const [loading,   setLoading]   = useState(true);
+  const [saving,    setSaving]    = useState(false);
+  const [msg,       setMsg]       = useState("");
+  const [selClass,  setSelClass]  = useState("");
   const [date,      setDate]      = useState(new Date().toISOString().split("T")[0]);
-  const [editRow,   setEditRow]   = useState(null);
-  const [showAdd,   setShowAdd]   = useState(false);
-  const [addForm,   setAddForm]   = useState({ roll:"", name:"", class:"10-A", status:"Present", time:"" });
+  const [classes,   setClasses]   = useState([]);
 
-  const present = data.filter(s=>s.status==="Present").length;
-  const absent  = data.filter(s=>s.status==="Absent").length;
-  const late    = data.filter(s=>s.status==="Late").length;
-  const pct     = Math.round((present/data.length)*100);
+  // ✅ Fetch all students from DB
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await getStudentsAPI();
+        setStudents(res.data);
+        // Get unique classes
+        const uniqueClasses = [...new Set(res.data.map(s => s.class).filter(Boolean))];
+        setClasses(uniqueClasses);
+        if (uniqueClasses.length > 0) setSelClass(uniqueClasses[0]);
+        // Default all Present
+        const att = {};
+        res.data.forEach(s => att[s._id] = "Present");
+        setAttendance(att);
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
+    fetchStudents();
+  }, []);
 
-  // Toggle Present/Absent directly in table
-  const toggle = (id) => setData(data.map(s => s.id===id ? { ...s, status:s.status==="Present"?"Absent":"Present" } : s));
+  const filteredStudents = students.filter(s => s.class === selClass);
 
-  const saveEdit = () => {
-    setData(data.map(s => s.id===editRow.id ? { ...editRow } : s));
-    setEditRow(null);
+  const toggle = (id) => {
+    setAttendance(prev => ({
+      ...prev,
+      [id]: prev[id] === "Present" ? "Absent" : "Present"
+    }));
   };
 
-  const handleAdd = () => {
-    if (!addForm.name || !addForm.roll) return;
-    setData([...data, { id:String(data.length+1).padStart(2,"0"), ...addForm }]);
-    setAddForm({ roll:"", name:"", class:"10-A", status:"Present", time:"" });
-    setShowAdd(false);
+  const setStatus = (id, status) => {
+    setAttendance(prev => ({ ...prev, [id]: status }));
   };
+
+  // ✅ Mark All Present
+  const markAllPresent = () => {
+    const att = { ...attendance };
+    filteredStudents.forEach(s => att[s._id] = "Present");
+    setAttendance(att);
+  };
+
+  // ✅ Save attendance to DB
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const records = filteredStudents.map(s => ({
+        studentId: s._id,
+        status:    attendance[s._id] || "Present",
+        time:      new Date().toLocaleTimeString("en-US", { hour:"2-digit", minute:"2-digit" }),
+      }));
+      await markAttendanceAPI({ records, date, class: selClass });
+      setMsg("Attendance saved ✅");
+      setTimeout(() => setMsg(""), 3000);
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.message || "Failed"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const present = filteredStudents.filter(s => attendance[s._id] === "Present").length;
+  const absent  = filteredStudents.filter(s => attendance[s._id] === "Absent").length;
+  const pct     = filteredStudents.length ? Math.round(present / filteredStudents.length * 100) : 0;
 
   const badge = v => (
     <span style={{ padding:"3px 12px", borderRadius:20, fontSize:11, fontWeight:700,
-      background:v==="Present"?"var(--bg-badge-green)":v==="Late"?"var(--bg-badge-amber)":"var(--bg-badge-red)",
-      color:v==="Present"?"var(--text-green)":v==="Late"?"var(--text-amber)":"var(--text-red)" }}>{v}</span>
-  );
-
-  const Modal = ({ title, form, setForm, onSave, onClose }) => (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200, backdropFilter:"blur(3px)", padding:16 }}
-      onClick={onClose}>
-      <div style={{ background:"var(--bg-card)", borderRadius:16, padding:"26px", width:"100%", maxWidth:420, border:"1px solid var(--border)", boxShadow:"0 20px 60px rgba(0,0,0,0.3)" }}
-        onClick={e=>e.stopPropagation()}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-          <h3 style={{ color:"var(--text-heading)", fontSize:16, fontWeight:700, margin:0 }}>{title}</h3>
-          <button onClick={onClose} style={{ background:"var(--bg-input)", border:"1px solid var(--border)", borderRadius:8, width:30, height:30, cursor:"pointer", color:"var(--text-muted)", fontSize:15, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
-        </div>
-        {[
-          { key:"name",   label:"Student Name"                                                    },
-          { key:"roll",   label:"Roll No"                                                         },
-          { key:"class",  label:"Class",  sel:true, opts:["10-A","10-B","9-A","9-B","8-A","8-B","7-C"] },
-          { key:"status", label:"Status", sel:true, opts:["Present","Absent","Late"]              },
-          { key:"time",   label:"Time",   placeholder:"e.g. 08:00 AM"                            },
-        ].map(f=>(
-          <div key={f.key} style={{ marginBottom:13 }}>
-            <label style={{ display:"block", color:"var(--text-muted)", fontSize:12, fontWeight:600, marginBottom:5 }}>{f.label}</label>
-            {f.sel
-              ? <select value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})} style={inp}>
-                  {f.opts.map(o=><option key={o} value={o}>{o}</option>)}
-                </select>
-              : <input type="text" placeholder={f.placeholder||`Enter ${f.label}`} value={form[f.key]||""}
-                  onChange={e=>setForm({...form,[f.key]:e.target.value})} style={inp}
-                  onFocus={e=>e.target.style.borderColor="#6366f1"} onBlur={e=>e.target.style.borderColor="var(--border-input)"}/>
-            }
-          </div>
-        ))}
-        <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:18 }}>
-          <button onClick={onClose} style={{ padding:"9px 20px", background:"var(--bg-input)", border:"1px solid var(--border-input)", borderRadius:9, color:"var(--text-secondary)", cursor:"pointer", fontWeight:600, fontSize:13, fontFamily:"inherit" }}>Cancel</button>
-          <button onClick={onSave} style={{ padding:"9px 24px", background:"linear-gradient(135deg,#4f46e5,#7c3aed)", border:"none", borderRadius:9, color:"#fff", cursor:"pointer", fontWeight:700, fontSize:13, fontFamily:"inherit" }}>Save</button>
-        </div>
-      </div>
-    </div>
+      background: v==="Present"?"var(--bg-badge-green)":"var(--bg-badge-red)",
+      color:      v==="Present"?"var(--text-green)":"var(--text-red)" }}>{v}</span>
   );
 
   return (
@@ -89,10 +89,16 @@ export default function TeacherAttendance() {
           <h1 style={{ fontSize:20, fontWeight:700, color:"var(--text-heading)", margin:0 }}>Attendance</h1>
           <p style={{ fontSize:13, color:"var(--text-muted)", marginTop:4 }}>Dashboard › Attendance</p>
         </div>
-        <button onClick={()=>setShowAdd(true)}
-          style={{ padding:"9px 18px", background:"linear-gradient(135deg,#4f46e5,#7c3aed)", color:"#fff", border:"none", borderRadius:9, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
-          ➕ Add Record
-        </button>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <button onClick={markAllPresent}
+            style={{ padding:"9px 16px", background:"var(--bg-card)", color:"var(--text-secondary)", border:"1px solid var(--border-input)", borderRadius:9, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+            ✅ All Present
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            style={{ padding:"9px 18px", background:"linear-gradient(135deg,#4f46e5,#7c3aed)", color:"#fff", border:"none", borderRadius:9, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+            {saving ? "Saving..." : "💾 Save Attendance"}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -101,17 +107,23 @@ export default function TeacherAttendance() {
           style={{ padding:"9px 14px", background:"var(--bg-card)", border:"1px solid var(--border-input)", borderRadius:9, color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" }}/>
         <select value={selClass} onChange={e=>setSelClass(e.target.value)}
           style={{ padding:"9px 14px", background:"var(--bg-card)", border:"1px solid var(--border-input)", borderRadius:9, color:"var(--text-primary)", fontSize:13, outline:"none", fontFamily:"inherit" }}>
-          {["10-A","10-B","9-A","9-B","8-A","8-B","7-C"].map(c=><option key={c} value={c}>{c}</option>)}
+          {classes.map(c=><option key={c} value={c}>{c}</option>)}
         </select>
       </div>
+
+      {msg && (
+        <div style={{ background:msg.includes("Error")?"rgba(239,68,68,0.1)":"rgba(22,163,74,0.1)", border:`1px solid ${msg.includes("Error")?"rgba(239,68,68,0.2)":"rgba(22,163,74,0.2)"}`, borderRadius:10, padding:"10px 16px", marginBottom:16 }}>
+          <p style={{ color:msg.includes("Error")?"#f87171":"#4ade80", fontSize:13, margin:0 }}>{msg}</p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="ta-stats">
         {[
-          { label:"Total Students", value:data.length, color:"#4f46e5", icon:"👥" },
-          { label:"Present",        value:present,     color:"#16a34a", icon:"✅" },
-          { label:"Absent",         value:absent,      color:"#dc2626", icon:"❌" },
-          { label:"Attendance",     value:`${pct}%`,   color:"#d97706", icon:"📊" },
+          { label:"Total Students", value:filteredStudents.length, color:"#4f46e5", icon:"👥" },
+          { label:"Present",        value:present,                 color:"#16a34a", icon:"✅" },
+          { label:"Absent",         value:absent,                  color:"#dc2626", icon:"❌" },
+          { label:"Attendance",     value:`${pct}%`,               color:"#d97706", icon:"📊" },
         ].map((c,i)=>(
           <div key={i} style={{ background:"var(--bg-card)", borderRadius:14, padding:"18px", border:"1px solid var(--border)", boxShadow:"var(--shadow)", textAlign:"center" }}>
             <div style={{ fontSize:22, marginBottom:8 }}>{c.icon}</div>
@@ -124,75 +136,89 @@ export default function TeacherAttendance() {
       {/* Table */}
       <div style={{ background:"var(--bg-card)", borderRadius:14, padding:"20px", border:"1px solid var(--border)", boxShadow:"var(--shadow)" }}>
         <h3 style={{ fontSize:14, fontWeight:700, color:"var(--text-primary)", margin:"0 0 16px" }}>
-          Attendance Sheet — {selClass} &nbsp;
-          <span style={{ fontSize:12, color:"var(--text-muted)", fontWeight:400 }}>({date})</span>
+          Class {selClass} — {date}
         </h3>
-        <div style={{ overflowX:"auto" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, minWidth:540 }}>
-            <thead>
-              <tr style={{ borderBottom:"2px solid var(--border-input)" }}>
-                {["#","Roll No","Student Name","Status","Time","Toggle","Action"].map(h=>(
-                  <th key={h} style={{ textAlign:"left", padding:"10px 14px", background:"var(--bg-input)", color:"#4f46e5", fontWeight:700, fontSize:11, textTransform:"uppercase" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((s,i)=>(
-                <tr key={s.id} style={{ borderBottom:"1px solid var(--border)", background:i%2===0?"var(--bg-card)":"var(--bg-input)" }}>
-                  <td style={{ padding:"12px 14px", color:"var(--text-muted)", fontSize:12 }}>{i+1}</td>
-                  <td style={{ padding:"12px 14px", color:"var(--text-secondary)", fontSize:12 }}>{s.roll}</td>
-                  <td style={{ padding:"12px 14px" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <div style={{ width:28, height:28, borderRadius:"50%", background:"#eef2ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#4f46e5", flexShrink:0 }}>{s.name[0]}</div>
-                      <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{s.name}</span>
+
+        {loading ? (
+          <p style={{ color:"var(--text-muted)", textAlign:"center", padding:32 }}>Loading students...</p>
+        ) : filteredStudents.length === 0 ? (
+          <p style={{ color:"var(--text-muted)", textAlign:"center", padding:32 }}>No students in this class.</p>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="att-table-wrap">
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, minWidth:500 }}>
+                  <thead>
+                    <tr style={{ borderBottom:"2px solid var(--border-input)" }}>
+                      {["#","Student Name","Class","Status","Mark"].map(h=>(
+                        <th key={h} style={{ textAlign:"left", padding:"10px 14px", background:"var(--bg-input)", color:"#4f46e5", fontWeight:700, fontSize:11, textTransform:"uppercase" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map((s,i)=>(
+                      <tr key={s._id} style={{ borderBottom:"1px solid var(--border)", background:i%2===0?"var(--bg-card)":"var(--bg-input)" }}>
+                        <td style={{ padding:"12px 14px", color:"var(--text-muted)", fontSize:12 }}>{i+1}</td>
+                        <td style={{ padding:"12px 14px" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <div style={{ width:28, height:28, borderRadius:"50%", background:"#eef2ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#4f46e5", flexShrink:0 }}>{s.name?.[0]}</div>
+                            <span style={{ fontWeight:600, color:"var(--text-primary)" }}>{s.name}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding:"12px 14px", color:"var(--text-secondary)" }}>{s.class}</td>
+                        <td style={{ padding:"12px 14px" }}>{badge(attendance[s._id]||"Present")}</td>
+                        <td style={{ padding:"12px 14px" }}>
+                          <button onClick={()=>toggle(s._id)}
+                            style={{ padding:"6px 14px", border:"none", borderRadius:7, cursor:"pointer", fontSize:12, fontWeight:700, fontFamily:"inherit", transition:"all .2s",
+                              background: attendance[s._id]==="Present"?"#fef2f2":"#f0fdf4",
+                              color:      attendance[s._id]==="Present"?"#dc2626":"#16a34a" }}>
+                            {attendance[s._id]==="Present" ? "Mark Absent" : "Mark Present"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="att-cards-wrap" style={{ display:"none", flexDirection:"column", gap:10 }}>
+              {filteredStudents.map((s,i)=>(
+                <div key={s._id} style={{ background:"var(--bg-input)", borderRadius:12, padding:"12px 14px", border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ width:34, height:34, borderRadius:"50%", background:"#eef2ff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:"#4f46e5" }}>{s.name?.[0]}</div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)", margin:0 }}>{s.name}</p>
+                      <p style={{ fontSize:11, color:"var(--text-muted)", margin:0 }}>{s.class}</p>
                     </div>
-                  </td>
-                  <td style={{ padding:"12px 14px" }}>{badge(s.status)}</td>
-                  <td style={{ padding:"12px 14px", color:"var(--text-secondary)", fontSize:12 }}>{s.time}</td>
-                  {/* Quick Toggle */}
-                  <td style={{ padding:"12px 14px" }}>
-                    <button onClick={()=>toggle(s.id)}
-                      style={{ padding:"5px 12px", border:"none", borderRadius:7, cursor:"pointer", fontSize:11, fontWeight:700, fontFamily:"inherit", whiteSpace:"nowrap",
-                        background:s.status==="Present"?"#fef2f2":"#f0fdf4",
-                        color:s.status==="Present"?"#dc2626":"#16a34a" }}>
-                      {s.status==="Present"?"Mark Absent":"Mark Present"}
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    {badge(attendance[s._id]||"Present")}
+                    <button onClick={()=>toggle(s._id)}
+                      style={{ padding:"5px 10px", border:"none", borderRadius:7, cursor:"pointer", fontSize:11, fontWeight:700, fontFamily:"inherit",
+                        background: attendance[s._id]==="Present"?"#fef2f2":"#f0fdf4",
+                        color:      attendance[s._id]==="Present"?"#dc2626":"#16a34a" }}>
+                      {attendance[s._id]==="Present"?"Absent":"Present"}
                     </button>
-                  </td>
-                  {/* Edit + Delete */}
-                  <td style={{ padding:"12px 14px" }}>
-                    <button title="Edit" onClick={()=>setEditRow({...s})}
-                      style={{ background:"#eef2ff", border:"none", borderRadius:7, width:30, height:30, cursor:"pointer", marginRight:6, display:"inline-flex", alignItems:"center", justifyContent:"center", transition:"all .2s" }}
-                      onMouseEnter={e=>{e.currentTarget.style.background="#4f46e5";e.currentTarget.querySelector("svg").style.stroke="#fff";}}
-                      onMouseLeave={e=>{e.currentTarget.style.background="#eef2ff";e.currentTarget.querySelector("svg").style.stroke="#4f46e5";}}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" style={{width:13,height:13,transition:"stroke .15s"}}>
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button title="Delete" onClick={()=>setData(data.filter(r=>r.id!==s.id))}
-                      style={{ background:"#fef2f2", border:"none", borderRadius:7, width:30, height:30, cursor:"pointer", display:"inline-flex", alignItems:"center", justifyContent:"center", transition:"all .2s" }}
-                      onMouseEnter={e=>{e.currentTarget.style.background="#ef4444";e.currentTarget.querySelector("svg").style.stroke="#fff";}}
-                      onMouseLeave={e=>{e.currentTarget.style.background="#fef2f2";e.currentTarget.querySelector("svg").style.stroke="#ef4444";}}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" style={{width:13,height:13,transition:"stroke .15s"}}>
-                        <polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/>
-                        <path d="M10,11v6"/><path d="M14,11v6"/>
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p style={{ fontSize:13, color:"var(--text-muted)", marginTop:14 }}>Showing {data.length} of {data.length} students</p>
+            </div>
+          </>
+        )}
       </div>
 
-      {editRow && <Modal title="✏️ Edit Attendance" form={editRow} setForm={setEditRow} onSave={saveEdit} onClose={()=>setEditRow(null)}/>}
-      {showAdd  && <Modal title="➕ Add Attendance" form={addForm} setForm={setAddForm} onSave={handleAdd} onClose={()=>setShowAdd(false)}/>}
-
       <style>{`
-        .ta-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
-        @media(max-width:768px){ .ta-stats{ grid-template-columns:repeat(2,1fr) !important; gap:10px !important; } }
+        .ta-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+        .att-table-wrap { display:block; }
+        .att-cards-wrap { display:none !important; }
+        @media(max-width:768px){
+          .ta-stats { grid-template-columns:repeat(2,1fr) !important; gap:10px !important; }
+          .att-table-wrap { display:none !important; }
+          .att-cards-wrap { display:flex !important; }
+        }
       `}</style>
     </div>
   );
