@@ -25,6 +25,7 @@ import Results        from "./pages/admin/Results";
 import Reports        from "./pages/admin/Reports";
 import Settings       from "./pages/admin/Settings";
 import Notices        from "./pages/admin/Notices";
+import Approvals      from "./pages/admin/Approvals";
 
 // Student
 import StudentDashboard  from "./pages/student/Dashboard";
@@ -35,15 +36,15 @@ import StudentProfile    from "./pages/student/Profile";
 import StudentResults    from "./pages/student/Results";
 import StudentTimetable  from "./pages/student/Timetable";
 
-// 404
-import NotFound from "./pages/NotFound";
-
 // Teacher
 import TeacherDashboard  from "./pages/teacher/Dashboard";
 import TeacherAttendance from "./pages/teacher/Attendance";
 import TeacherStudents   from "./pages/teacher/Students";
 import TeacherProfile    from "./pages/teacher/Profile";
 import TeacherResults    from "./pages/teacher/Results";
+
+// 404
+import NotFound from "./pages/NotFound";
 
 // ── Protected Route ──
 function ProtectedRoute({ children, allowedRoles }) {
@@ -123,6 +124,7 @@ function AppRoutes() {
       <Route path="/admin/reports"    element={<A><Reports/></A>}/>
       <Route path="/admin/settings"   element={<A><Settings/></A>}/>
       <Route path="/admin/notices"    element={<A><Notices/></A>}/>
+      <Route path="/admin/approvals"  element={<A><Approvals/></A>}/>
 
       {/* Student */}
       <Route path="/student/dashboard"  element={<S><StudentDashboard/></S>}/>
@@ -140,7 +142,7 @@ function AppRoutes() {
       <Route path="/teacher/profile"    element={<T><TeacherProfile/></T>}/>
       <Route path="/teacher/results"    element={<T><TeacherResults/></T>}/>
 
-      <Route path="*" element={<NotFound />}/>
+      <Route path="*" element={<NotFound/>}/>
     </Routes>
   );
 }

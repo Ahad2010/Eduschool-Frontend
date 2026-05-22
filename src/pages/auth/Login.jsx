@@ -2,35 +2,28 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-const DEMO_USERS = [
-  { email:"admin@eduschool.com",   password:"admin123",   role:"admin",   name:"Admin"      },
-  { email:"student@eduschool.com", password:"student123", role:"student", name:"Ahmed Khan" },
-  { email:"teacher@eduschool.com", password:"teacher123", role:"teacher", name:"Mr. Khalid" },
-];
-
 export default function Login() {
-  const navigate  = useNavigate();
-  const { login } = useAuth();
-  const [form,    setForm]    = useState({ email:"", password:"" });
-  const [error,   setError]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPw,  setShowPw]  = useState(false);
+  const navigate    = useNavigate();
+  const { login }   = useAuth();
+  const [form,      setForm]    = useState({ email:"", password:"" });
+  const [error,     setError]   = useState("");
+  const [loading,   setLoading] = useState(false);
+  const [showPw,    setShowPw]  = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(""); setLoading(true);
-    setTimeout(() => {
-      const user = DEMO_USERS.find(u => u.email===form.email && u.password===form.password);
-      if (user) {
-        login({ name:user.name, email:user.email, role:user.role }, "demo-token-123");
-        if (user.role==="admin")   navigate("/admin/dashboard");
-        if (user.role==="student") navigate("/student/dashboard");
-        if (user.role==="teacher") navigate("/teacher/dashboard");
-      } else {
-        setError("Invalid email or password.");
-      }
+    try {
+      const userData = await login(form.email, form.password);
+      // Role based redirect
+      if (userData.role === "admin")   navigate("/admin/dashboard");
+      if (userData.role === "student") navigate("/student/dashboard");
+      if (userData.role === "teacher") navigate("/teacher/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Try again.");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   const inp = {
@@ -47,7 +40,6 @@ export default function Login() {
       <div className="login-left" style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:48, position:"relative", overflow:"hidden" }}>
         <div style={{ position:"absolute", top:-100, left:-100, width:350, height:350, borderRadius:"50%", background:"rgba(79,70,229,0.08)" }}/>
         <div style={{ position:"absolute", bottom:-80, right:-80, width:280, height:280, borderRadius:"50%", background:"rgba(99,102,241,0.06)" }}/>
-
         <div style={{ position:"relative", zIndex:1, textAlign:"center", maxWidth:400 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:14, marginBottom:40 }}>
             <div style={{ width:52, height:52, borderRadius:14, background:"linear-gradient(135deg,#4f46e5,#7c3aed)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>🎓</div>
@@ -56,14 +48,9 @@ export default function Login() {
               <p style={{ color:"#475569", fontSize:12, margin:0 }}>School Management Portal</p>
             </div>
           </div>
-
           <div style={{ width:"100%", height:200, borderRadius:20, background:"linear-gradient(180deg,#1e3a5f 0%,#0d1117 100%)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:90, marginBottom:28, border:"1px solid rgba(255,255,255,0.06)" }}>🏫</div>
-
           <h2 style={{ color:"#fff", fontSize:20, fontWeight:700, margin:"0 0 10px" }}>Welcome to EduSchool</h2>
-          <p style={{ color:"#475569", fontSize:13, lineHeight:1.8, margin:"0 0 28px" }}>
-            Complete school management for admins, teachers & students.
-          </p>
-
+          <p style={{ color:"#475569", fontSize:13, lineHeight:1.8, margin:"0 0 28px" }}>Complete school management for admins, teachers & students.</p>
           <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
             {[{val:"1,250+",label:"Students"},{val:"85+",label:"Teachers"},{val:"40+",label:"Classes"}].map((s,i)=>(
               <div key={i} style={{ padding:"10px 16px", borderRadius:10, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.06)", textAlign:"center" }}>
@@ -79,17 +66,7 @@ export default function Login() {
       <div className="login-right" style={{ width:460, display:"flex", alignItems:"center", justifyContent:"center", padding:"40px 44px", background:"rgba(22,27,39,0.98)", borderLeft:"1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ width:"100%" }}>
           <h1 style={{ color:"#f1f5f9", fontSize:24, fontWeight:800, margin:"0 0 6px" }}>Welcome Back! 👋</h1>
-          <p style={{ color:"#475569", fontSize:13, margin:"0 0 24px" }}>Login to access your dashboard</p>
-
-          {/* Demo hint */}
-          <div style={{ background:"rgba(99,102,241,0.08)", border:"1px solid rgba(99,102,241,0.2)", borderRadius:10, padding:"10px 14px", marginBottom:22 }}>
-            <p style={{ color:"#818cf8", fontSize:11, fontWeight:700, margin:"0 0 3px" }}>🔑 Demo Credentials:</p>
-            <p style={{ color:"#6366f1", fontSize:11, margin:0, lineHeight:1.9 }}>
-              admin@eduschool.com &nbsp;/&nbsp; admin123<br/>
-              student@eduschool.com &nbsp;/&nbsp; student123<br/>
-              teacher@eduschool.com &nbsp;/&nbsp; teacher123
-            </p>
-          </div>
+          <p style={{ color:"#475569", fontSize:13, margin:"0 0 28px" }}>Login to access your dashboard</p>
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom:16 }}>
@@ -134,8 +111,7 @@ export default function Login() {
               background:loading?"#374151":"linear-gradient(135deg,#4f46e5,#7c3aed)",
               color:"#fff", border:"none", borderRadius:10,
               fontSize:14, fontWeight:700, cursor:loading?"not-allowed":"pointer",
-              fontFamily:"inherit", boxShadow:loading?"none":"0 4px 20px rgba(79,70,229,0.3)",
-              transition:"all .2s",
+              fontFamily:"inherit", transition:"all .2s",
             }}>
               {loading ? "Logging in..." : "Login →"}
             </button>
