@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://eduschool-backend-production.up.railway.app/",
+baseURL: "https://eduschool-backend-production.up.railway.app/api"
 });
 
 // ✅ Har request mein token auto attach
