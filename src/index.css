@@ -1,16 +1,20 @@
- /* ✅ 1. Google Fonts PEHLE */
+/* ✅ 1. Google Fonts PEHLE */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 /* ✅ 2. Tailwind BAAD MEIN */
-@import "tailwindcss"; 
+@import "tailwindcss";
+
 /* =============================================
    RESET & BASE
 ============================================= */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
   transition: background .3s, color .3s;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* =============================================
@@ -35,12 +39,31 @@ body {
   --bg-badge-red:   #fef2f2;
   --bg-badge-blue:  #eff6ff;
   --bg-badge-amber: #fffbeb;
-  --navbar-bg:      #ffffff;
+  --navbar-bg:      rgba(255,255,255,0.85);
   --navbar-border:  #f1f5f9;
   --sidebar-bg:     #1a1f37;
   --sidebar-w:      240px;
   --shadow:         0 2px 12px rgba(67,97,238,0.08);
   --shadow-md:      0 8px 40px rgba(67,97,238,0.15);
+  --shadow-lg:      0 20px 60px rgba(67,97,238,0.12);
+
+  /* ✅ Design Tokens */
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-full: 999px;
+
+  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px; --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  --text-xs:   11px; --text-sm: 12px; --text-base: 14px;
+  --text-md:   15px; --text-lg: 16px; --text-xl:   20px;
+  --text-2xl:  24px; --text-3xl: 32px;
+
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --glow: 0 0 0 3px rgba(99,102,241,0.15);
 }
 
 /* =============================================
@@ -65,11 +88,12 @@ html.dark {
   --bg-badge-red:   rgba(220,38,38,0.15);
   --bg-badge-blue:  rgba(37,99,235,0.15);
   --bg-badge-amber: rgba(217,119,6,0.15);
-  --navbar-bg:      #161b27;
+  --navbar-bg:      rgba(22,27,39,0.90);
   --navbar-border:  #21293a;
   --sidebar-bg:     #0d1117;
   --shadow:         0 2px 12px rgba(0,0,0,0.3);
   --shadow-md:      0 8px 40px rgba(0,0,0,0.4);
+  --shadow-lg:      0 20px 60px rgba(0,0,0,0.6);
 }
 
 body { background: var(--bg-page); color: var(--text-primary); }
@@ -80,49 +104,221 @@ body { background: var(--bg-page); color: var(--text-primary); }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+
+/* =============================================
+   NAVBAR GLASSMORPHISM
+============================================= */
+header {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 
 /* =============================================
    SIDEBAR
 ============================================= */
-.sidebar-transition { transition: transform 0.1s ease; }
+.sidebar-transition { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
 
 /* =============================================
-   GLOBAL DARK MODE OVERRIDES
+   DARK MODE OVERRIDES
 ============================================= */
 html.dark h1, html.dark h2, html.dark h3,
-html.dark h4, html.dark h5, html.dark h6 {
-  color: var(--text-heading) !important;
-}
+html.dark h4, html.dark h5, html.dark h6 { color: var(--text-heading) !important; }
 html.dark input, html.dark select, html.dark textarea {
   background: var(--bg-input) !important;
   color: var(--text-primary) !important;
   border-color: var(--border-input) !important;
 }
-html.dark th {
-  background: var(--bg-input) !important;
-  border-color: var(--border-input) !important;
-}
+html.dark th { background: var(--bg-input) !important; border-color: var(--border-input) !important; }
 html.dark td { border-color: var(--border) !important; }
 html.dark tr { background: var(--bg-card) !important; }
 html.dark tr:nth-child(even) { background: var(--bg-input) !important; }
 html.dark tr:hover { background: var(--bg-hover) !important; }
 
 /* =============================================
+   ✅ PREMIUM ANIMATIONS
+============================================= */
+
+/* Page Enter */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.main-content main > div {
+  animation: pageEnter 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Slide Up */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Slide Down */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* Scale In */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* Shimmer Skeleton */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* Float */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* Spin */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Bounce */
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.3); }
+  50%  { opacity: 1; transform: scale(1.05); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+/* =============================================
+   ✅ PREMIUM CARD
+============================================= */
+.card-hover {
+  transition: var(--transition);
+  cursor: pointer;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* =============================================
+   ✅ SKELETON
+============================================= */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--border-input) 25%,
+    var(--bg-hover) 50%,
+    var(--border-input) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* =============================================
+   ✅ MODAL ANIMATION
+============================================= */
+.modal-overlay {
+  animation: fadeIn 0.15s ease;
+}
+.modal-box {
+  animation: slideUp 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* =============================================
+   ✅ STAT CARDS — TOP GLOW
+============================================= */
+.stat-glow {
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.stat-glow::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.stat-glow:hover::before { opacity: 1; }
+.stat-glow:hover { transform: translateY(-2px); box-shadow: var(--shadow-md) !important; }
+
+/* =============================================
+   ✅ BUTTON EFFECTS
+============================================= */
+button { transition: var(--transition); }
+button:active { transform: scale(0.97); }
+
+/* =============================================
+   ✅ INPUT FOCUS GLOW
+============================================= */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: var(--glow) !important;
+  border-color: #6366f1 !important;
+}
+
+/* =============================================
+   ✅ TABLE ROW HOVER
+============================================= */
+tr { transition: background 0.15s ease; }
+
+/* =============================================
+   ✅ NOTIFICATION BADGE PULSE
+============================================= */
+.badge-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* =============================================
+   ✅ SIDEBAR NAV ACTIVE
+============================================= */
+.nav-active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+}
+
+/* =============================================
+   ✅ LOGIN PAGE ANIMATIONS
+============================================= */
+.login-card {
+  animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.login-left-content {
+  animation: fadeIn 0.6s ease 0.1s both;
+}
+.login-stat-card {
+  animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1) both;
+}
+.login-stat-card:nth-child(1) { animation-delay: 0.2s; }
+.login-stat-card:nth-child(2) { animation-delay: 0.3s; }
+.login-stat-card:nth-child(3) { animation-delay: 0.4s; }
+
+/* =============================================
    RESPONSIVE — DESKTOP (1024px+)
 ============================================= */
 @media (min-width: 1024px) {
-  /* Sidebar always visible */
-  aside {
-    transform: translateX(0) !important;
-    position: fixed !important;
-  }
-  /* Main content pushed right */
-  .main-content {
-    margin-left: var(--sidebar-w) !important;
-  }
-  /* Hide mobile close btn */
+  aside { transform: translateX(0) !important; position: fixed !important; }
+  .main-content { margin-left: var(--sidebar-w) !important; }
   .sidebar-close-btn { display: none !important; }
-  /* Hide hamburger on desktop */
   .hamburger-btn { display: none !important; }
 }
 
@@ -130,247 +326,69 @@ html.dark tr:hover { background: var(--bg-hover) !important; }
    RESPONSIVE — TABLET (768px - 1023px)
 ============================================= */
 @media (max-width: 1023px) {
-  /* Sidebar hidden — slide in when .open */
-  aside {
-    transform: translateX(-100%) !important;
-    position: fixed !important;
-    z-index: 50 !important;
-  }
-  aside.open-sidebar,
-  aside[class*="open"] {
-    transform: translateX(0) !important;
-  }
-  /* Full width content */
-  .main-content {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-  /* Show hamburger */
+  aside { transform: translateX(-100%) !important; position: fixed !important; z-index: 50 !important; }
+  aside.open-sidebar, aside[class*="open"] { transform: translateX(0) !important; }
+  .main-content { margin-left: 0 !important; width: 100% !important; }
   .hamburger-btn { display: flex !important; }
-  /* Show close btn in sidebar */
   .sidebar-close-btn { display: flex !important; }
-
-  /* Reduce padding */
-  .main-content main > div {
-    padding: 20px 16px !important;
-  }
-
-  /* Stats grid — 2 columns */
-  .main-content main > div > div[style*="grid-template-columns: repeat(4"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  /* Charts — single column */
-  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Settings grid */
-  div[style*="grid-template-columns: 1fr 1fr"][style*="max-width: 900"] {
-    grid-template-columns: 1fr !important;
-  }
+  .main-content main > div { padding: 20px 16px !important; }
+  .main-content main > div > div[style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; }
+  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  div[style*="grid-template-columns: 1fr 1fr"][style*="max-width: 900"] { grid-template-columns: 1fr !important; }
 }
 
 /* =============================================
    RESPONSIVE — MOBILE (max 767px)
 ============================================= */
 @media (max-width: 767px) {
-
-  /* ── Navbar ── */
-  header[style*="height:60"],
-  header[style*="height: 60"] {
-    padding: 0 12px !important;
-  }
-
-  /* Hide search bar on mobile navbar */
-  header div[style*="width: 260"],
-  header div[style*="width:260"] {
-    display: none !important;
-  }
-
-  /* ── Page Content ── */
-  .main-content main > div {
-    padding: 16px 12px !important;
-  }
-
-  /* ── Page Header (title + button) ── */
-  .main-content main > div > div[style*="justify-content: space-between"][style*="margin-bottom: 24"],
-  .main-content main > div > div[style*="justifyContent: space-between"][style*="marginBottom: 24"] {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-  }
-
-  /* ── Stat Cards — 2 col on mobile ── */
-  .main-content main > div > div[style*="grid-template-columns: repeat(4"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
-
-  /* Stat card padding */
-  .main-content main > div > div[style*="grid-template-columns"] > div {
-    padding: 14px !important;
-  }
-
-  /* ── Charts ── */
+  header[style*="height:60"], header[style*="height: 60"] { padding: 0 12px !important; }
+  header div[style*="width: 260"], header div[style*="width:260"] { display: none !important; }
+  .main-content main > div { padding: 16px 12px !important; }
+  .main-content main > div > div[style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .main-content main > div > div[style*="grid-template-columns"] > div { padding: 14px !important; }
   .main-content main > div > div[style*="grid-template-columns: 1fr 1fr 1fr"],
-  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  /* ── Table Card ── */
-  div[style*="border-radius: 16px"] {
-    padding: 14px !important;
-    border-radius: 12px !important;
-  }
-
-  /* ── Search row ── */
-  div[style*="justify-content: space-between"][style*="margin-bottom: 18"] {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-  }
-
-  /* Search input full width */
-  div[style*="width: 260"],
-  div[style*="width:260"] {
-    width: 100% !important;
-  }
-
-  /* ── Table — horizontal scroll ── */
-  div[style*="overflow-x: auto"],
-  div[style*="overflowX: auto"] {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-  }
-
-  table {
-    min-width: 600px !important;
-  }
-
-  /* ── Quick Actions — 3 col ── */
-  div[style*="grid-template-columns: repeat(6"] {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-  }
-
-  /* ── Pagination ── */
-  div[style*="justify-content: space-between"][style*="margin-top: 18"] {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 10px !important;
-  }
-
-  /* ── Modal — full width ── */
-  div[style*="max-width: 420"],
-  div[style*="maxWidth: 420"] {
-    max-width: 100% !important;
-    margin: 0 12px !important;
-    width: calc(100% - 24px) !important;
-  }
-
-  div[style*="max-width: 400"],
-  div[style*="maxWidth: 400"] {
-    max-width: 100% !important;
-    width: calc(100% - 24px) !important;
-  }
-
-  /* ── Login Page ── */
+  .main-content main > div > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; gap: 12px !important; }
+  div[style*="border-radius: 16px"] { padding: 14px !important; border-radius: 12px !important; }
+  div[style*="justify-content: space-between"][style*="margin-bottom: 18"] { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+  div[style*="width: 260"], div[style*="width:260"] { width: 100% !important; }
+  div[style*="overflow-x: auto"], div[style*="overflowX: auto"] { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  table { min-width: 600px !important; }
+  div[style*="grid-template-columns: repeat(6"] { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+  div[style*="justify-content: space-between"][style*="margin-top: 18"] { flex-direction: column !important; align-items: center !important; gap: 10px !important; }
+  div[style*="max-width: 420"], div[style*="maxWidth: 420"] { max-width: 100% !important; margin: 0 12px !important; width: calc(100% - 24px) !important; }
+  div[style*="max-width: 400"], div[style*="maxWidth: 400"] { max-width: 100% !important; width: calc(100% - 24px) !important; }
   .login-left { display: none !important; }
-  .login-right {
-    width: 100% !important;
-    padding: 28px 20px !important;
-  }
-
-  /* ── Register Page ── */
-  div[style*="max-width: 480"] {
-    max-width: 100% !important;
-    margin: 0 !important;
-    min-height: 100vh !important;
-    border-radius: 0 !important;
-  }
-
-  /* ── Settings grid ── */
-  div[style*="max-width: 900"] {
-    max-width: 100% !important;
-  }
-  div[style*="max-width: 900"] > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* ── Dashboard header date badge ── */
-  div[style*="border-radius: 10px"][style*="padding: 8px 14px"] {
-    display: none !important;
-  }
-
-  /* ── Font sizes ── */
-  h1[style*="font-size: 22"],
-  h1[style*="fontSize: 22"] {
-    font-size: 18px !important;
-  }
+  .login-right { width: 100% !important; padding: 28px 20px !important; }
+  div[style*="max-width: 480"] { max-width: 100% !important; margin: 0 !important; min-height: 100vh !important; border-radius: 0 !important; }
+  div[style*="max-width: 900"] { max-width: 100% !important; }
+  div[style*="max-width: 900"] > div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  div[style*="border-radius: 10px"][style*="padding: 8px 14px"] { display: none !important; }
+  h1[style*="font-size: 22"], h1[style*="fontSize: 22"] { font-size: 18px !important; }
 }
 
 /* =============================================
    RESPONSIVE — SMALL MOBILE (max 400px)
 ============================================= */
 @media (max-width: 400px) {
-  /* Stat cards — single col on very small */
-  .main-content main > div > div[style*="grid-template-columns: repeat(4"] {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  /* Quick actions — 2 col */
-  div[style*="grid-template-columns: repeat(6"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  /* Table font */
+  .main-content main > div > div[style*="grid-template-columns: repeat(4"] { grid-template-columns: 1fr 1fr !important; }
+  div[style*="grid-template-columns: repeat(6"] { grid-template-columns: repeat(2, 1fr) !important; }
   table { font-size: 12px !important; }
   td, th { padding: 8px 10px !important; }
 }
 
 /* =============================================
    TABLE — MOBILE COLUMN HIDE
-   Mobile pe extra columns hide karo
 ============================================= */
 @media (max-width: 767px) {
-
-  /* Email column hide */
-  table th:nth-child(5),
-  table td:nth-child(5) {
-    display: none !important;
-  }
-
-  /* Phone column hide */
-  table th:nth-child(6),
-  table td:nth-child(6) {
-    display: none !important;
-  }
-
-  /* Table font chhota */
+  table th:nth-child(5), table td:nth-child(5) { display: none !important; }
+  table th:nth-child(6), table td:nth-child(6) { display: none !important; }
   table { font-size: 12px !important; }
   td, th { padding: 10px 8px !important; }
-
-  /* Name column — wrap allow */
-  table td:nth-child(3) {
-    min-width: 120px !important;
-  }
-
-  /* Action buttons chhote */
-  table td:last-child button {
-    width: 26px !important;
-    height: 26px !important;
-  }
+  table td:nth-child(3) { min-width: 120px !important; }
+  table td:last-child button { width: 26px !important; height: 26px !important; }
 }
 
 @media (max-width: 480px) {
-  /* Roll No bhi hide karo very small screens pe */
-  table th:nth-child(2),
-  table td:nth-child(2) {
-    display: none !important;
-  }
+  table th:nth-child(2), table td:nth-child(2) { display: none !important; }
 }
